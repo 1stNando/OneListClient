@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ConsoleTables;
+
 namespace OneListClient
 {
     class Program
@@ -18,10 +20,17 @@ namespace OneListClient
             //                                               V          V
             var items = await JsonSerializer.DeserializeAsync<List<Item>>(responseBodyAsStream);
 
+            var table = new ConsoleTable("Description", "Created At", "Completed");
+
             foreach (var item in items)
             {
-                Console.WriteLine($"The task {item.Text} was created on {item.CreatedAt} and has completion of {item.Complete}");
+                //Notice the critical importance of the order in which these rows are being created, they have to match the
+                //order of the "var table" lay out.
+                table.AddRow(item.Text, item.CreatedAt, item.CompletedStatus);
             }
+
+            //Write the table
+            table.Write();
         }
     }
 }
