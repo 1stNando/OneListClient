@@ -12,7 +12,16 @@ namespace OneListClient
         //the system be become synchronous with await.
         static async Task Main(string[] args)
         {
-            var token = args[0];
+            var token = "";
+            if (args.Length == 0)
+            {
+                Console.Write("What list would you like? ");
+                token = Console.ReadLine();
+            }
+            else
+            {
+                token = args[0];
+            }
 
             var client = new HttpClient();
 
