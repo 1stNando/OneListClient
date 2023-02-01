@@ -11,20 +11,28 @@ namespace OneListClient
     {
         static async Task GetOneItem(string token, int id)
         {
-            var client = new HttpClient();
-            // Generate a URL specifically referencing the endpoint for getting a single
-            // todo item and provide the id we were supplied
-            var url = $"https://one-list-api.herokuapp.com/items/{id}?access_token={token}";
-            var responseAsStream = await client.GetStreamAsync(url);
-
-            // Supply that *stream of data* to a Deserialize that will interpret it as a *SINGLE* `Item`
-            var item = await JsonSerializer.DeserializeAsync<Item>(responseAsStream);
-            var table = new ConsoleTable("ID", "Description", "Created At", "Updated At", "Completed");
-
-            // Add one row to our table
-            table.AddRow(item.Id, item.Text, item.CreatedAt, item.UpdatedAt, item.CompletedStatus);
-            // Write the table
-            table.Write(Format.Minimal);
+            static async Task GetOneItem(string token, int id)
+            {
+                try
+                {
+                    var client = new HttpClient();
+                    // Generate a URL specifically referencing the endpoint for getting a single
+                    // todo item and provide the id we were supplied
+                    var url = $"https://one-list-api.herokuapp.com/items/{id}?access_token={token}";
+                    var responseAsStream = await client.GetStreamAsync(url);
+                    // Supply that *stream of data* to a Deserialize that will interpret it as a *SINGLE* `Item`
+                    var item = await JsonSerializer.DeserializeAsync<Item>(responseAsStream);
+                    var table = new ConsoleTable("ID", "Description", "Created At", "Updated At", "Completed");
+                    // Add one row to our table
+                    table.AddRow(item.Id, item.Text, item.CreatedAt, item.UpdatedAt, item.CompletedStatus);
+                    // Write the table
+                    table.Write(Format.Minimal);
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("I could not find that item!");
+                }
+            }
         }
 
         //This is part of the "Menu", but it is dependent on the specific "token" so we need it at the top of the program.
@@ -35,12 +43,13 @@ namespace OneListClient
             //the await keyword is important part that lets us wait for the code. Fetching data from a server and receiving back a Stream!
             var responseBodyAsStream = await client.GetStreamAsync($"https://one-list-api.herokuapp.com/items?access_token={token}");
 
-            //                                  Describe the shape of the data (array in JSON => List, Object in JSON =>Item). This lives in the cloud.
-            //                                               V          V
+            //Describe the shape of the data (Object in JSON =>Item). This lives in the cloud.
+            //                                               V          
             var items = await JsonSerializer.DeserializeAsync<List<Item>>(responseBodyAsStream);
 
             var table = new ConsoleTable("Description", "Created At", "Completed");
 
+            //loop through all items on the list
             foreach (var item in items)
             {
                 //Notice the critical importance of the order in which these rows are being created, they have to match the
