@@ -8,21 +8,10 @@ using ConsoleTables;
 namespace OneListClient
 {
     class Program
-    {   //Notice the "async Task" we have started to need ahead of the Main() in order for 
-        //the system be become synchronous with await.
-        static async Task Main(string[] args)
+    {
+        //This is part of the "Menu", but it is dependent on the specific "token" so we need it at the top of the program.
+        static async Task ShowAllItems(string token)
         {
-            var token = "";
-            if (args.Length == 0)
-            {
-                Console.Write("What list would you like? ");
-                token = Console.ReadLine();
-            }
-            else
-            {
-                token = args[0];
-            }
-
             var client = new HttpClient();
 
             //the await keyword is important part that lets us wait for the code. Fetching data from a server and receiving back a Stream!
@@ -41,8 +30,55 @@ namespace OneListClient
                 table.AddRow(item.Text, item.CreatedAt, item.CompletedStatus);
             }
 
-            //Write the table
+            //Write the table out 
             table.Write();
+        }
+
+        //Notice the "async Task" we have started to need ahead of the Main() in order for 
+        //the system be become synchronous with await.
+        static async Task Main(string[] args)
+        {
+            //logic to deal with the event that the user tries to dotnet run without including
+            //the specific {token}, otherwise known as the name of our list. 
+            var token = "";
+            if (args.Length == 0)
+            {
+                Console.Write("What list would you like? ");
+                token = Console.ReadLine();
+            }
+            else
+            {
+                token = args[0];
+            }
+
+
+
+            var keepGoing = true;
+            while (keepGoing)
+            {
+                Console.Clear();
+                Console.Write("Get (A)ll to-do, or (Q)uit: ");
+                var choice = Console.ReadLine().ToUpper();
+
+                switch (choice)
+                {
+                    case "Q":
+                        keepGoing = false;
+                        break;
+
+                    case "A":
+                        //Note the need to include "await" keyword since we need user to tell us what list to use. 
+                        await ShowAllItems(token);
+
+                        Console.WriteLine("Press ENTER to continue");
+                        Console.ReadLine();
+                        break;
+
+                    //set default value
+                    default:
+                        break;
+                }
+            }
         }
     }
 }
