@@ -9,6 +9,24 @@ namespace OneListClient
 {
     class Program
     {
+        static async Task GetOneItem(string token, int id)
+        {
+            var client = new HttpClient();
+            // Generate a URL specifically referencing the endpoint for getting a single
+            // todo item and provide the id we were supplied
+            var url = $"https://one-list-api.herokuapp.com/items/{id}?access_token={token}";
+            var responseAsStream = await client.GetStreamAsync(url);
+
+            // Supply that *stream of data* to a Deserialize that will interpret it as a *SINGLE* `Item`
+            var item = await JsonSerializer.DeserializeAsync<Item>(responseAsStream);
+            var table = new ConsoleTable("ID", "Description", "Created At", "Updated At", "Completed");
+
+            // Add one row to our table
+            table.AddRow(item.Id, item.Text, item.CreatedAt, item.UpdatedAt, item.CompletedStatus);
+            // Write the table
+            table.Write(Format.Minimal);
+        }
+
         //This is part of the "Menu", but it is dependent on the specific "token" so we need it at the top of the program.
         static async Task ShowAllItems(string token)
         {
@@ -57,7 +75,7 @@ namespace OneListClient
             while (keepGoing)
             {
                 Console.Clear();
-                Console.Write("Get (A)ll to-do, or (Q)uit: ");
+                Console.Write("Get (A)ll to-do, (O)ne to-do, or (Q)uit: ");
                 var choice = Console.ReadLine().ToUpper();
 
                 switch (choice)
@@ -70,6 +88,18 @@ namespace OneListClient
                         //Note the need to include "await" keyword since we need user to tell us what list to use. 
                         await ShowAllItems(token);
 
+                        Console.WriteLine("Press ENTER to continue");
+                        Console.ReadLine();
+                        break;
+
+
+                    //This allows user to fetch a specific item IN the todo list.
+                    case "O":
+                        Console.Write("Enter the ID of the item to show: ");
+                        var id = int.Parse(Console.ReadLine());
+
+                        //token, id are the things it is taking in
+                        await GetOneItem(token, id);
                         Console.WriteLine("Press ENTER to continue");
                         Console.ReadLine();
                         break;
