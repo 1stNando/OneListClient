@@ -12,29 +12,27 @@ namespace OneListClient
     {
         static async Task GetOneItem(string token, int id)
         {
-            static async Task GetOneItem(string token, int id)
+            try
             {
-                try
-                {
-                    var client = new HttpClient();
-                    // Generate a URL specifically referencing the endpoint for getting a single
-                    // todo item and provide the id we were supplied
-                    var url = $"https://one-list-api.herokuapp.com/items/{id}?access_token={token}";
-                    var responseAsStream = await client.GetStreamAsync(url);
-                    // Supply that *stream of data* to a Deserialize that will interpret it as a *SINGLE* `Item`
-                    var item = await JsonSerializer.DeserializeAsync<Item>(responseAsStream);
-                    var table = new ConsoleTable("ID", "Description", "Created At", "Updated At", "Completed");
-                    // Add one row to our table
-                    table.AddRow(item.Id, item.Text, item.CreatedAt, item.UpdatedAt, item.CompletedStatus);
-                    // Write the table
-                    table.Write(Format.Minimal);
-                }
-                catch (HttpRequestException)
-                {
-                    Console.WriteLine("I could not find that item!");
-                }
+                var client = new HttpClient();
+                // Generate a URL specifically referencing the endpoint for getting a single
+                // todo item and provide the id we were supplied
+                var url = $"https://one-list-api.herokuapp.com/items/{id}?access_token={token}";
+                var responseAsStream = await client.GetStreamAsync(url);
+                // Supply that *stream of data* to a Deserialize that will interpret it as a *SINGLE* `Item`
+                var item = await JsonSerializer.DeserializeAsync<Item>(responseAsStream);
+                var table = new ConsoleTable("ID", "Description", "Created At", "Updated At", "Completed");
+                // Add one row to our table
+                table.AddRow(item.Id, item.Text, item.CreatedAt, item.UpdatedAt, item.CompletedStatus);
+                // Write the table
+                table.Write(Format.Minimal);
+            }
+            catch (HttpRequestException)
+            {
+                Console.WriteLine("I could not find that item!");
             }
         }
+
 
         //This is part of the "Menu", but it is dependent on the specific "token" so we need it at the top of the program.
         static async Task ShowAllItems(string token)
@@ -132,6 +130,24 @@ namespace OneListClient
             table.Write(Format.Minimal);
         }
 
+        static async Task DeleteOneItem(string token, int id)
+        {
+            try
+            {
+                var client = new HttpClient();
+
+                // Generate a URL specifically referencing the endpoint for getting a single
+                // todo item and provide the id we were supplied
+                var url = $"https://one-list-api.herokuapp.com/items/{id}?access_token={token}";
+
+                await client.DeleteAsync(url);
+            }
+            catch (HttpRequestException)
+            {
+                Console.WriteLine("I could not find that item!");
+            }
+        }
+
         //Notice the "async Task" we have started to need ahead of the Main() in order for 
         //the system be become synchronous with await.
         static async Task Main(string[] args)
@@ -216,6 +232,16 @@ namespace OneListClient
                         };
 
                         await UpdateOneItem(token, existingId, updateItem);
+
+                        Console.WriteLine("Press ENTER to continue");
+                        Console.ReadLine();
+                        break;
+
+                    case "D":
+                        Console.Write("Enter the ID of the item to delete: ");
+                        var idToDelete = int.Parse(Console.ReadLine());
+
+                        await DeleteOneITem(token, idToDelete);
 
                         Console.WriteLine("Press ENTER to continue");
                         Console.ReadLine();
