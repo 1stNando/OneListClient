@@ -11,10 +11,17 @@ namespace OneListClient
         {
             var client = new HttpClient();
 
-            //the await keyword is important part that lets us wait for the code. Fetching data from a server and receiving back a string.
+            //the await keyword is important part that lets us wait for the code. Fetching data from a server and receiving back a Stream!
             var responseBodyAsStream = await client.GetStreamAsync("https://one-list-api.herokuapp.com/items?access_token=fernando");
 
-            var items = JsonSerializer.DeserializeAsync<List<Item>>(responseBodyAsStream);
+            //                                  Describe the shape of the data (array in JSON => List, Object in JSON =>Item)
+            //                                               V          V
+            var items = await JsonSerializer.DeserializeAsync<List<Item>>(responseBodyAsStream);
+
+            foreach (var item in items)
+            {
+                Console.WriteLine($"The task {item.text} was created on {item.created_at} and has completion of {item.complete}");
+            }
         }
     }
 }
